@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🦆 Duck Tracker</title>
+    <script src="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/js/all.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #FF1493;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2d3436;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .progress-section {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .counter {
+            font-size: 2em;
+            font-weight: bold;
+            color: #FF1493;
+            margin-bottom: 10px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FF1493 0%, #FF69B4 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2d3436;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .duck-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px 10px;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 2px solid #FF1493;
+        }
+
+        .duck-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 2px 8px rgba(255, 20, 147, 0.3);
+        }
+
+        .duck-item.found {
+            background: #FF1493;
+            border-color: #FF1493;
+        }
+
+        .duck-item .number {
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 1.4em;
+            color: #2d3436;
+            user-select: none;
+        }
+
+        .duck-item.found .number {
+            color: white;
+        }
+
+        .celebration {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+        }
+
+        .celebration.show {
+            display: block;
+            animation: popup 0.5s ease;
+        }
+
+        @keyframes popup {
+            0% {
+                transform: translate(-50%, -50%) scale(0.5);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+        }
+
+        .celebration h2 {
+            font-size: 2.5em;
+            color: #FF1493;
+            margin-bottom: 20px;
+        }
+
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+        }
+
+        .overlay.show {
+            display: block;
+        }
+
+        .close-btn {
+            margin-top: 20px;
+            background: #FF1493;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        .close-btn:hover {
+            background: #FF69B4;
+        }
+
+        .backup-section {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .backup-btn, .restore-btn {
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .backup-btn {
+            background: #10B981;
+        }
+
+        .backup-btn:hover {
+            background: #059669;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+        }
+
+        .restore-btn {
+            background: #1495FF;
+        }
+
+        .restore-btn:hover {
+            background: #0080FF;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(20, 149, 255, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 8px;
+            }
+            
+            .duck-item {
+                padding: 15px 8px;
+            }
+            
+            .duck-item .number {
+                font-size: 1.2em;
+            }
+
+            .backup-btn, .restore-btn {
+                width: 45px;
+                height: 45px;
+                font-size: 1.1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🦆 Duck Tracker 🦆</h1>
+        
+        <div class="progress-section">
+            <div class="counter">
+                <span id="found-count">0</span> Ducks Found
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+                <div class="progress-text" id="progress-text">0%</div>
+            </div>
+        </div>
+
+        <div class="grid" id="duck-grid"></div>
+
+        <div class="backup-section">
+            <button class="backup-btn" id="backup-btn" title="Download Backup">
+                <i class="fa-solid fa-floppy-disk" style="color: #ffffff;"></i>
+            </button>
+            <button class="restore-btn" id="restore-btn" title="Restore Backup">
+                <i class="fa-solid fa-folder-open" style="color: #ffffff;"></i>
+            </button>
+            <input type="file" id="file-input" accept=".json" style="display: none;">
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="celebration" id="celebration">
+        <h2>🎉 Congratulations! 🎉</h2>
+        <p style="font-size: 1.5em; margin-bottom: 20px;">You found all 100 ducks!</p>
+        <p style="font-size: 3em;">🦆🦆🦆</p>
+        <button class="close-btn" id="close-btn">Close</button>
+    </div>
+
+    <script>
+        const TOTAL_DUCKS = 100;
+        
+        // Get DOM elements
+        const grid = document.getElementById('duck-grid');
+        const foundCount = document.getElementById('found-count');
+        const progressFill = document.getElementById('progress-fill');
+        const progressText = document.getElementById('progress-text');
+        const celebration = document.getElementById('celebration');
+        const overlay = document.getElementById('overlay');
+        const closeBtn = document.getElementById('close-btn');
+        const backupBtn = document.getElementById('backup-btn');
+        const restoreBtn = document.getElementById('restore-btn');
+        const fileInput = document.getElementById('file-input');
+
+        // Initialize with empty array
+        let foundDucks = [];
+
+        // Try to load from localStorage
+        const saved = localStorage.getItem('duckTracker100');
+        if (saved) {
+            try {
+                foundDucks = JSON.parse(saved);
+            } catch (e) {
+                foundDucks = [];
+            }
+        }
+
+        // Create the grid
+        for (let i = 1; i <= TOTAL_DUCKS; i++) {
+            const duckItem = document.createElement('div');
+            duckItem.className = 'duck-item';
+            
+            if (foundDucks.includes(i)) {
+                duckItem.classList.add('found');
+            }
+            
+            const number = document.createElement('span');
+            number.className = 'number';
+            number.textContent = i;
+
+            // Handle clicking the item to toggle
+            duckItem.addEventListener('click', function() {
+                const isFound = foundDucks.includes(i);
+                
+                if (isFound) {
+                    // Remove from found
+                    const index = foundDucks.indexOf(i);
+                    if (index > -1) {
+                        foundDucks.splice(index, 1);
+                        duckItem.classList.remove('found');
+                    }
+                } else {
+                    // Add to found
+                    foundDucks.push(i);
+                    duckItem.classList.add('found');
+                }
+                
+                updateProgress();
+            });
+
+            duckItem.appendChild(number);
+            grid.appendChild(duckItem);
+        }
+
+        function updateProgress() {
+            const count = foundDucks.length;
+            foundCount.textContent = count;
+            const percentage = (count / TOTAL_DUCKS) * 100;
+            progressFill.style.width = percentage + '%';
+            progressText.textContent = Math.round(percentage) + '%';
+            
+            // Save to localStorage
+            localStorage.setItem('duckTracker100', JSON.stringify(foundDucks));
+
+            // Show celebration if complete
+            if (count === TOTAL_DUCKS) {
+                celebration.classList.add('show');
+                overlay.classList.add('show');
+            }
+        }
+
+        function closeCelebration() {
+            celebration.classList.remove('show');
+            overlay.classList.remove('show');
+        }
+
+        function downloadBackup() {
+            const backupData = {
+                foundDucks: foundDucks,
+                timestamp: new Date().toISOString(),
+                totalDucks: TOTAL_DUCKS
+            };
+            
+            const dataStr = JSON.stringify(backupData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `duck-tracker-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert('✅ Backup downloaded successfully!');
+        }
+
+        function restoreBackup() {
+            fileInput.click();
+        }
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const backupData = JSON.parse(e.target.result);
+                    
+                    if (!backupData.foundDucks || !Array.isArray(backupData.foundDucks)) {
+                        alert('❌ Invalid backup file format');
+                        return;
+                    }
+                    
+                    // Restore the data
+                    foundDucks = backupData.foundDucks.filter(num => num >= 1 && num <= TOTAL_DUCKS);
+                    localStorage.setItem('duckTracker100', JSON.stringify(foundDucks));
+                    
+                    // Rebuild the grid
+                    grid.innerHTML = '';
+                    for (let i = 1; i <= TOTAL_DUCKS; i++) {
+                        const duckItem = document.createElement('div');
+                        duckItem.className = 'duck-item';
+                        
+                        if (foundDucks.includes(i)) {
+                            duckItem.classList.add('found');
+                        }
+                        
+                        const number = document.createElement('span');
+                        number.className = 'number';
+                        number.textContent = i;
+
+                        duckItem.addEventListener('click', function() {
+                            const isFound = foundDucks.includes(i);
+                            
+                            if (isFound) {
+                                const index = foundDucks.indexOf(i);
+                                if (index > -1) {
+                                    foundDucks.splice(index, 1);
+                                    duckItem.classList.remove('found');
+                                }
+                            } else {
+                                foundDucks.push(i);
+                                duckItem.classList.add('found');
+                            }
+                            
+                            updateProgress();
+                        });
+
+                        duckItem.appendChild(number);
+                        grid.appendChild(duckItem);
+                    }
+                    
+                    updateProgress();
+                    alert('✅ Backup restored successfully!');
+                } catch (error) {
+                    alert('❌ Error reading backup file: ' + error.message);
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            fileInput.value = '';
+        }
+
+        // Initialize progress display
+        updateProgress();
+
+        // Close button
+        closeBtn.addEventListener('click', closeCelebration);
+        
+        // Backup/Restore buttons
+        backupBtn.addEventListener('click', downloadBackup);
+        restoreBtn.addEventListener('click', restoreBackup);
+        fileInput.addEventListener('change', handleFileUpload);
+    </script>
+</body>
+</html>
